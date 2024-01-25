@@ -54,8 +54,12 @@ git lfs install
 
 git config --global trailer.changeid.key "Change-Id"
 
+sudo apt-get install repo
+
 cd ~/android/lineage
-echo "y" | repo init -u https://github.com/LineageOS/android.git -b cm-14.1 --git-lfs
+echo "y" | repo init -u https://github.com/LineageOS/android.git -b cm-14.1
+
+source ~/.profile
 
 # START THE DOWNLOAD
 repo sync
