@@ -112,5 +112,7 @@ esac
 # Clean up after extraction
 rm -rf ~/android/system_dump/
 
+cd ~/android/lineage
+
 croot
 brunch gtelwifiue
