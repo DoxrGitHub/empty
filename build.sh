@@ -95,20 +95,48 @@ case $TYPE in
     mkdir ~/android/system_dump/
     cd ~/android/system_dump/
     unzip ~/android/lineage/lineage-*.zip system.transfer.list system.new.dat* 
-    # check if `vendor.transfer.list vendor.new.dat*`
-
+    if [[ -e vendor.transfer.list ]] && [[ -e vendor.new.dat.br ]]; then
+        unzip ~/android/lineage/lineage-*.zip vendor.transfer.list vendor.new.dat*
+    fi
+    if [[ -e system.new.dat.br ]]; then
+        brotli --decompress --output=system.new.dat system.new.dat.br
+    fi
+    if [[ -e vendor.new.dat.br ]]; then
+        brotli --decompress --output=vendor.new.dat vendor.new.dat.br
+    fi
+    python sdat2img/sdat2img.py system.transfer.list system.new.dat system.img
+    if [[ -e vendor.new.dat ]]; then
+        python sdat2img/sdat2img.py vendor.transfer.list vendor.new.dat vendor.img
+    fi
+    mkdir system/
+    sudo mount system.img system/
+    if [[ -e vendor.img ]]; then
+        sudo rm system/vendor
+        sudo mkdir system/vendor
+        sudo mount vendor.img system/vendor/
+    fi
     ;;
  "file-based")
-    # ... File-based extraction steps here ...
+    mkdir ~/android/system_dump/
+    cd ~/android/system_dump/
+    unzip ~/android/lineage/lineage-*.zip system/*
     ;;
  "payload-based")
-    # ... Payload-based extraction steps here ...
-    ;;
- *)
-    echo "Unknown OTA type: $TYPE"
-    exit 1
+    mkdir ~/android/system_dump/
+    cd ~/android/system_dump/
+    sudo apt-get install python3-protobuf
+    git clone https://github.com/LineageOS/android_tools_extract-utils android/tools/extract-utils
+    git clone https://github.com/LineageOS/android_system_update_engine android/system/update_engine
+    python3 android/tools/extract-utils/extract_ota.py ~/android/lineage/lineage-*.zip
+    mkdir system/
+    sudo mount -o ro system.img system/
+    sudo mount -o ro vendor.img system/vendor/
+    sudo mount -o ro odm.img system/odm/
+    sudo mount -o ro product.img system/product/
+    sudo mount -o ro system_ext.img system/system_ext/
     ;;
 esac
+
 
 # After extraction, run extract-files.sh
 ./extract-files.sh ~/android/system_dump/
